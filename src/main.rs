@@ -8,8 +8,12 @@ use std::{
 };
 
 fn main() {
-    let listener = TcpListener::bind("127.0.0.1:7676").unwrap();
+    let port = std::env::var("PORT").unwrap_or_else(|_| "7676".to_string());
+
+    let listener = TcpListener::bind(format!("127.0.0.1:{}", port)).unwrap();
     let pool = ThreadPool::build(4).unwrap();
+
+    println!("Server is running on port {}", port);
 
     for stream in listener.incoming() {
         let stream = stream.unwrap();
