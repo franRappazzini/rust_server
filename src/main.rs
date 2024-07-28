@@ -32,13 +32,14 @@ fn handle_connection(mut stream: TcpStream) {
             thread::sleep(Duration::from_secs(5));
             ("HTTP/1.1 200 OK", "index.html")
         }
+        "GET /api HTTP/1.1" => ("HTTP/1.1 200 OK", "test.json"),
         _ => ("HTTP/1.1 404 NOT FOUND", "404.html"),
     };
 
-    let html = fs::read_to_string(filename).unwrap();
-    let len = html.len();
+    let file = fs::read_to_string(filename).unwrap();
+    let len = file.len();
 
-    let res = format!("{status_line}\r\nContent-Length: {len}\r\n\r\n{html}");
+    let res = format!("{status_line}\r\nContent-Length: {len}\r\n\r\n{file}");
 
     stream.write_all(res.as_bytes()).unwrap();
 }

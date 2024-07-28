@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "message": "Request processed successfully",
+  "data": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "johndoe@example.com"
+  }
+}
