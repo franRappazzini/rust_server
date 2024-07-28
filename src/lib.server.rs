@@ -8,8 +8,6 @@ pub struct ThreadPool {
     sender: Option<mpsc::Sender<Job>>,
 }
 
-type Job = Box<dyn FnOnce() + Send + 'static>;
-
 impl ThreadPool {
     /// Create a new ThreadPool.
     ///
@@ -42,17 +40,20 @@ impl ThreadPool {
     /// # Errors
     ///
     /// Returns a `PoolCreationError` if the capacity is zero.
-    pub fn build(capacity: usize) -> Result<Self, PoolCreationError> {
+    pub fn build(capacity: usize) -> Result<ThreadPool, PoolCreationError> {
         if capacity == 0 {
             return Err(PoolCreationError::ZeroCapacity);
         }
 
         let (sender, receiver) = mpsc::channel();
+
         let receiver = Arc::new(Mutex::new(receiver));
 
-        let mut workers = Vec::with_capacity(capacity);
-        for id in 0..capacity {
-            workers.push(Worker::new(id, Arc::clone(&receiver)))
+        let mut workers = Vec::with_capacity(capacity as usize);
+
+        for i in 0..capacity {
+            // despues implementaremos los thread
+            workers.push(Worker::new(i, Arc::clone(&receiver)))
         }
 
         Ok(Self {
@@ -66,6 +67,7 @@ impl ThreadPool {
         F: FnOnce() + Send + 'static,
     {
         let job = Box::new(f);
+
         self.sender.as_ref().unwrap().send(job).unwrap();
     }
 }
@@ -74,24 +76,33 @@ impl Drop for ThreadPool {
     fn drop(&mut self) {
         drop(self.sender.take());
 
-        for worker in &mut self.workers {
-            println!("Shutting down worker {}", worker.id);
+        for w in &mut self.workers {
+            println!("drop worker with id: {}", w.id);
 
-            if let Some(thread) = worker.thread.take() {
-                thread.join().unwrap();
+            if let Some(th) = w.thread.take() {
+                th.join().unwrap();
             }
         }
     }
 }
+
+#[derive(Debug)]
+pub enum PoolCreationError {
+    ZeroCapacity,
+}
+
 struct Worker {
     id: usize,
+    // thread: Option<thread::JoinHandle<()>>,
     thread: Option<thread::JoinHandle<()>>,
+    // receiver: Arc<Mutex<mpsc::Receiver<Job>>>,
 }
 
 impl Worker {
     fn new(id: usize, receiver: Arc<Mutex<mpsc::Receiver<Job>>>) -> Self {
         let thread = thread::spawn(move || loop {
             let message = receiver.lock().unwrap().recv();
+
             match message {
                 Ok(job) => {
                     println!("Worker {id} got a job; executing.");
@@ -103,6 +114,7 @@ impl Worker {
                 }
             }
         });
+
         Self {
             id,
             thread: Some(thread),
@@ -110,7 +122,4 @@ impl Worker {
     }
 }
 
-#[derive(Debug)]
-pub enum PoolCreationError {
-    ZeroCapacity,
-}
+type Job = Box<dyn FnOnce() + Send + 'static>;
