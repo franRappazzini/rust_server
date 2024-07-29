@@ -10,9 +10,13 @@ use std::{
 fn main() {
     let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     let port = std::env::var("PORT").unwrap_or_else(|_| "7676".to_string());
+    let capacity = std::env::var("CAPACITY")
+        .unwrap_or_else(|_| "4".to_string())
+        .parse()
+        .expect("CAPACITY must be a number");
 
     let listener = TcpListener::bind(format!("0.0.0.0:{}", port)).unwrap();
-    let pool = ThreadPool::build(4).unwrap();
+    let pool = ThreadPool::build(capacity).unwrap();
 
     println!("Server is running on {}:{}", host, port);
 
