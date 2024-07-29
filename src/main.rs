@@ -9,7 +9,7 @@ use std::{
 
 fn main() {
     let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
-    let port = std::env::var("PORT").unwrap_or_else(|_| "10000".to_string());
+    let port = std::env::var("PORT").unwrap_or_else(|_| "7676".to_string());
 
     let listener = TcpListener::bind(format!("0.0.0.0:{}", port)).unwrap();
     let pool = ThreadPool::build(4).unwrap();
