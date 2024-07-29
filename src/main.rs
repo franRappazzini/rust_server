@@ -8,7 +8,8 @@ use std::{
 };
 
 fn main() {
-    let port = std::env::var("PORT").unwrap_or_else(|_| "7676".to_string());
+    // let port = std::env::var("PORT").unwrap_or_else(|_| "7676".to_string());
+    let port = 7676;
 
     let listener = TcpListener::bind(format!("127.0.0.1:{}", port)).unwrap();
     let pool = ThreadPool::build(4).unwrap();
